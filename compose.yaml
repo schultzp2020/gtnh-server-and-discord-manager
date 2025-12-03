@@ -1,0 +1,48 @@
+services:
+  mc:
+    image: itzg/minecraft-server:java25
+    container_name: mc-server
+    tty: true
+    stdin_open: true
+    ports:
+      - "25565:25565"
+    environment:
+      TYPE: "CURSEFORGE"
+      EULA: "TRUE"
+      DIFFICULTY: "normal"
+      CF_SERVER_MOD: "/modpacks/${CF_SERVER_MOD_FILENAME}"
+      CF_BASE_DIR: "/data"
+      ENABLE_RCON: "true"
+      RCON_PASSWORD: "${RCON_PASSWORD}"
+    volumes:
+      - ./data:/data
+      - ./modpacks:/modpacks
+    networks:
+      - mc-network
+
+  discord-bot:
+    build: ./discord-bot
+    container_name: mc-discord-bot
+    restart: unless-stopped
+    environment:
+      DISCORD_TOKEN: "${DISCORD_TOKEN}"
+      RCON_HOST: "mc"
+      RCON_PORT: "25575"
+      RCON_PASSWORD: "${RCON_PASSWORD}"
+      MC_CONTAINER: "mc-server"
+      ALLOWED_USERS: "${ALLOWED_USERS:-}"
+      ALLOWED_ROLES: "${ALLOWED_ROLES:-}"
+      DISABLE_WHITELIST: "${DISABLE_WHITELIST:-false}"
+      BRIDGE_CHANNEL_ID: "${BRIDGE_CHANNEL_ID:-0}"
+      COMMAND_CHANNEL_ID: "${COMMAND_CHANNEL_ID:-0}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/minecraft-data
+    depends_on:
+      - mc
+    networks:
+      - mc-network
+
+networks:
+  mc-network:
+    driver: bridge

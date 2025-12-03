@@ -1,0 +1,9 @@
+# Environment (contains secrets)
+.env
+!.env.example
+
+# Server data (generated at runtime)
+data/
+
+# Modpacks (large files, user downloads separately)
+modpacks/*.zip

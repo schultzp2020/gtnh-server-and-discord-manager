@@ -1,0 +1,4 @@
+discord.py>=2.3.0
+mcrcon>=0.7.0
+docker>=7.0.0
+
