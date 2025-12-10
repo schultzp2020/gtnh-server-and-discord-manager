@@ -46,6 +46,9 @@ docker_client = docker.from_env()
 # Generic regex to capture any "INFO: <Player> Message" pattern, ignoring timestamp/thread info
 CHAT_REGEX = re.compile(r"INFO\]: <(.*?)> (.*)")
 
+# Track if stream_logs is already running to prevent duplicates on reconnect
+stream_logs_running = False
+
 # ═══════════════════════════════════════════════════════════════
 # HELPER FUNCTIONS
 # ═══════════════════════════════════════════════════════════════
@@ -215,8 +218,10 @@ async def on_ready():
     if COMMAND_CHANNEL_ID != 0:
         print(f"✅ Commands restricted to channel {COMMAND_CHANNEL_ID}")
 
-    # Start streaming logs
-    bot.loop.create_task(stream_logs())
+    # Start streaming logs (only if not already running)
+    global stream_logs_running
+    if not stream_logs_running:
+        bot.loop.create_task(stream_logs())
 
 
 @bot.event
@@ -241,9 +246,12 @@ async def chat_bridge():
 
 
 async def stream_logs():
+    global stream_logs_running
+    stream_logs_running = True
     await bot.wait_until_ready()
     channel = bot.get_channel(BRIDGE_CHANNEL_ID)
     if not channel:
+        stream_logs_running = False
         return
     while True:
         try:
@@ -597,4 +605,3 @@ if __name__ == "__main__":
 
     print("🤖 Starting Discord bot...")
     bot.run(DISCORD_TOKEN)
-
